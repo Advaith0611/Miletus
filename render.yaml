@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: miletus-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health

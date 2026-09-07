@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Miletus — documents into podcasts</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="brand"><a class="pythios-link" href="https://pythios.xyz" aria-label="Visit Pythios"><img src="/logo.png" alt="Pythios" /></a><span class="mark" aria-hidden="true">✦</span><span>MILETUS</span></header>
+      <section id="upload-view" class="hero" aria-labelledby="hero-title">
+        <p class="eyebrow">A clearer way to study</p>
+        <h1 id="hero-title">Turn your documents<br /><em>into podcasts.</em></h1>
+        <p class="lede">Upload notes, papers, or chapters. Miletus turns them into a thoughtful conversation you can listen to anywhere.</p>
+        <form id="upload-form">
+          <input id="file-input" name="files" type="file" accept=".pdf,.docx,.txt,.md,.markdown" multiple hidden />
+          <label id="dropzone" for="file-input" class="dropzone" tabindex="0">
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="drop-title">Choose your documents</span>
+            <span class="drop-copy">PDF, DOCX, TXT, or Markdown · select as many as you need</span>
+          </label>
+          <div id="selected-files" class="selected-files" aria-live="polite"></div>
+          <button id="start-button" class="primary" type="submit" disabled>Make my podcast <span>→</span></button>
+        </form>
+      </section>
+      <section id="progress-view" class="hidden" aria-live="polite">
+        <p class="eyebrow">Miletus is at work</p>
+        <h2 id="progress-title">Understanding your material<span class="dotting">...</span></h2>
+        <p id="progress-message" class="lede">Your documents are being read together.</p>
+        <div class="progress-track"><div id="progress-bar"></div></div>
+        <div id="steps" class="steps"></div>
+        <button id="cancel-button" class="text-button" type="button">Start over</button>
+      </section>
+      <section id="result-view" class="hidden" aria-labelledby="result-title">
+        <p class="eyebrow">The conversation is ready</p>
+        <h2 id="result-title">Your podcast is ready.</h2>
+        <div class="player-card">
+          <div class="record"><span>✦</span></div>
+          <div><p class="card-label">MILETUS ORIGINAL</p><h3 id="podcast-title">Your podcast</h3></div>
+          <audio id="audio-player" controls preload="metadata"></audio>
+          <a id="download-link" class="primary download" download>Download MP3 <span>↓</span></a>
+        </div>
+        <details class="transcript"><summary>Show transcript</summary><pre id="transcript-text"></pre></details>
+        <button id="again-button" class="text-button" type="button">Create another podcast</button>
+      </section>
+      <p class="footer-note">Private by design · no account required</p>
+    </main>
+    <script src="/config.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+:root { --ink:#20221f; --muted:#6d7169; --paper:#f7f6f1; --cream:#ebe9df; --accent:#ba5b3f; --line:#d8d6cd; }
+* { box-sizing:border-box; }
+body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+body:before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.22; background-image:radial-gradient(#aaa 0.55px, transparent .55px); background-size:7px 7px; mask-image:linear-gradient(to bottom, black, transparent 75%); }
+.shell { width:min(780px, calc(100% - 40px)); margin:auto; min-height:100vh; display:flex; flex-direction:column; padding:34px 0 25px; }
+.brand { font:700 14px/1.2 Arial,sans-serif; letter-spacing:.22em; display:flex; gap:11px; align-items:center; }
+.pythios-link { display:flex; align-items:center; margin-right:2px; }
+.pythios-link img { width:28px; height:28px; object-fit:contain; border-radius:7px; }
+.pythios-link:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.mark { color:var(--accent); font-size:21px; }
+.hero, #progress-view, #result-view { margin:auto 0; padding:70px 0; }
+.eyebrow, .card-label { color:var(--accent); font:700 11px/1.2 Arial,sans-serif; letter-spacing:.16em; text-transform:uppercase; }
+h1 { font-size:clamp(46px,8vw,80px); line-height:.98; letter-spacing:-.055em; margin:17px 0 25px; font-weight:400; }
+h1 em { color:var(--accent); font-style:italic; }
+h2 { font-size:clamp(36px,7vw,60px); line-height:1; letter-spacing:-.04em; margin:16px 0; font-weight:400; }
+.lede { max-width:510px; color:var(--muted); font:17px/1.55 Arial,sans-serif; }
+form { margin-top:43px; max-width:550px; }
+.dropzone { border:1px dashed #aca99e; min-height:190px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; cursor:pointer; transition:.2s; background:rgba(255,255,255,.25); }
+.dropzone:hover, .dropzone:focus-visible { border-color:var(--accent); background:#fffefa; outline:none; }
+.upload-icon { font:38px Arial,sans-serif; color:var(--accent); line-height:1; }
+.drop-title { font-size:21px; }
+.drop-copy { color:var(--muted); font:12px Arial,sans-serif; text-align:center; padding:0 15px; }
+.selected-files { color:var(--muted); font:13px Arial,sans-serif; min-height:25px; padding:13px 2px 0; }
+.primary { border:0; background:var(--ink); color:var(--paper); padding:15px 20px; cursor:pointer; font:700 13px Arial,sans-serif; letter-spacing:.02em; display:inline-flex; justify-content:space-between; gap:22px; text-decoration:none; }
+.primary:hover:not(:disabled) { background:var(--accent); }.primary:disabled { opacity:.35; cursor:not-allowed; }
+.steps { margin:35px 0; border-top:1px solid var(--line); max-width:550px; }
+.step { padding:14px 0; border-bottom:1px solid var(--line); color:#aaa; font:14px Arial,sans-serif; display:flex; gap:12px; }.step.done { color:var(--ink); }.step.active { color:var(--accent); font-weight:700; }.step span { width:18px; }
+.progress-track { height:4px; max-width:550px; background:var(--line); margin-top:35px; }.progress-track div { height:100%; background:var(--accent); width:0; transition:width .4s; }
+.player-card { max-width:600px; margin:35px 0 25px; padding:25px; background:var(--cream); display:grid; grid-template-columns:54px 1fr; gap:12px 17px; align-items:center; }.record { width:54px; height:54px; border-radius:50%; background:var(--ink); color:var(--paper); display:grid; place-items:center; font-size:23px; }.record span { color:var(--accent); }.player-card h3 { margin:5px 0 0; font-size:24px; font-weight:400; }.player-card audio { width:100%; grid-column:1/-1; }.download { grid-column:1/-1; justify-self:start; }.transcript { max-width:600px; font:14px Arial,sans-serif; }.transcript summary { cursor:pointer; color:var(--accent); }.transcript pre { white-space:pre-wrap; line-height:1.6; color:var(--muted); font:14px/1.6 Arial,sans-serif; }.text-button { border:0; background:none; color:var(--muted); padding:12px 0; cursor:pointer; text-decoration:underline; font:13px Arial,sans-serif; }.text-button:hover { color:var(--accent); }.footer-note { margin-top:auto; color:#aaa; font:11px Arial,sans-serif; }.hidden { display:none !important; }.dotting { color:var(--accent); }
+@media (max-width:600px) { .shell { width:calc(100% - 30px); padding-top:24px; }.hero,#progress-view,#result-view { padding:55px 0; } h1 { font-size:48px; }.lede { font-size:15px; }.dropzone { min-height:170px; }.player-card { padding:18px; } }
