@@ -39,7 +39,7 @@ Open <http://localhost:5173>. The frontend defaults to `http://localhost:8000`; 
 
 ## Environment variables
 
-See `.env.example`. Configure at least one of `GROQ_API_KEY` or `OPENROUTER_API_KEY` for production. Audio providers are tried per segment in this order: ElevenLabs, Speechify, local Kokoro, then local pyttsx3. Missing keys or exhausted credits automatically move to the next provider. Set `PODCAST_DURATION_MINUTES=30` for the default long-form target; the writer aims for about 3,900 spoken words and covers all supplied sections. Groq is attempted first and OpenRouter is used as a fallback after provider errors. Models and voices are configurable and are not hard-coded into the pipeline.
+See `.env.example`. Configure at least one of `GROQ_API_KEY` or `OPENROUTER_API_KEY` for production. Audio providers are tried per segment in this order: ElevenLabs, Speechify, local Kokoro, then local pyttsx3. Missing keys or exhausted credits automatically move to the next provider. On small Render instances, set `KOKORO_ENABLED=false` to avoid loading the Torch/Kokoro model; the Docker image includes `espeak-ng` for the pyttsx3 fallback. Set `PODCAST_DURATION_MINUTES=30` for the default long-form target; the writer aims for about 3,900 spoken words and covers all supplied sections. Groq is attempted first and OpenRouter is used as a fallback after provider errors. Models and voices are configurable and are not hard-coded into the pipeline.
 
 ## API
 

@@ -24,6 +24,7 @@ class Settings:
     speechify_student_voice_id: str = os.getenv("SPEECHIFY_STUDENT_VOICE_ID", "geffen_32")
     kokoro_teacher_voice: str = os.getenv("KOKORO_TEACHER_VOICE", "bf_emma")
     kokoro_student_voice: str = os.getenv("KOKORO_STUDENT_VOICE", "am_adam")
+    kokoro_enabled: bool = os.getenv("KOKORO_ENABLED", "true").lower() in {"1", "true", "yes"}
     podcast_duration_minutes: int = int(os.getenv("PODCAST_DURATION_MINUTES", "30"))
     podcast_words_per_minute: int = int(os.getenv("PODCAST_WORDS_PER_MINUTE", "130"))
     max_upload_mb: int = int(os.getenv("MAX_UPLOAD_MB", "50"))

@@ -183,7 +183,9 @@ class FallbackTTSProvider(TTSProvider):
             self.providers.append(("elevenlabs", ElevenLabsTTSProvider(settings)))
         if settings.speechify_api_key:
             self.providers.append(("speechify", SpeechifyTTSProvider(settings)))
-        self.providers.extend((("kokoro", KokoroTTSProvider(settings)), ("pyttsx3", Pyttsx3TTSProvider())))
+        if settings.kokoro_enabled:
+            self.providers.append(("kokoro", KokoroTTSProvider(settings)))
+        self.providers.append(("pyttsx3", Pyttsx3TTSProvider()))
         self.disabled: set[str] = set()
 
     async def generate_audio(self, text: str, voice_id: str) -> bytes:
