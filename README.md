@@ -5,7 +5,7 @@ Miletus turns one or many documents into a detailed educational podcast: upload 
 ## Architecture
 
 ```text
-Netlify (static HTML/CSS/JS) → FastAPI on Render → Groq / OpenRouter → ElevenLabs → FFmpeg → MP3
+Netlify (static HTML/CSS/JS) → FastAPI on Render → Groq / OpenRouter → ElevenLabs → Speechify → Kokoro → pyttsx3 → FFmpeg → MP3
 ```
 
 The backend is Python-only. A job accepts repeated `files` fields (up to `MAX_FILES_PER_JOB`) and combines their source-aware sections before analysis. Jobs are kept in memory and temporary files live under an isolated directory. Render's filesystem is ephemeral, so generated files are intentionally short-lived; this is appropriate for the no-account MVP.
@@ -39,7 +39,7 @@ Open <http://localhost:5173>. The frontend defaults to `http://localhost:8000`; 
 
 ## Environment variables
 
-See `.env.example`. Configure at least one of `GROQ_API_KEY` or `OPENROUTER_API_KEY`, plus both ElevenLabs voice IDs, for production. Groq is attempted first and OpenRouter is used as a fallback after provider errors. Models are configurable and are not hard-coded into the pipeline.
+See `.env.example`. Configure at least one of `GROQ_API_KEY` or `OPENROUTER_API_KEY` for production. Audio providers are tried per segment in this order: ElevenLabs, Speechify, local Kokoro, then local pyttsx3. Missing keys or exhausted credits automatically move to the next provider. Set `PODCAST_DURATION_MINUTES=30` for the default long-form target; the writer aims for about 3,900 spoken words and covers all supplied sections. Groq is attempted first and OpenRouter is used as a fallback after provider errors. Models and voices are configurable and are not hard-coded into the pipeline.
 
 ## API
 

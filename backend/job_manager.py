@@ -18,7 +18,7 @@ from .config import Settings
 from .extractors import extract_document
 from .models import JobResponse, JobStatus, PodcastScript
 from .prompts import ANALYSIS_PROMPT, GENERATION_PROMPT, render_prompt
-from .providers import ElevenLabsTTSProvider, LLMManager, MockTTSProvider, parse_json_object
+from .providers import FallbackTTSProvider, LLMManager, MockTTSProvider, parse_json_object
 
 logger = logging.getLogger(__name__)
 JSON_RESPONSE_FORMAT = {"type": "json_object"}
@@ -43,7 +43,7 @@ class JobManager:
         self.settings = settings
         self.jobs: dict[str, Job] = {}
         self.llm = LLMManager(settings)
-        self.tts = MockTTSProvider() if settings.mock_providers else ElevenLabsTTSProvider(settings)
+        self.tts = MockTTSProvider() if settings.mock_providers else FallbackTTSProvider(settings)
 
     def create(self, files: list[tuple[Path, str]]) -> Job:
         job_id = uuid.uuid4().hex
@@ -74,7 +74,7 @@ class JobManager:
             (job.directory / "chunks" / "chunks.json").write_text(json.dumps([c.model_dump() for c in chunks], indent=2), encoding="utf-8")
             self._update(job, JobStatus.analyzing, 25, "Understanding the material")
             source = "\n\n".join(f"[{c.source_file}{f', page {c.page_start}' if c.page_start else ''}]\n{c.text}" for c in chunks)
-            source_for_prompt = self._bounded_source(chunks, 50000)
+            source_for_prompt = self._bounded_source(chunks, self.settings.max_source_prompt_chars)
             if self.settings.mock_providers:
                 analysis = {"subject": "general study material", "title": "Your Notes", "major_topics": ["central ideas", "important details"], "key_concepts": ["The material is explained through connected concepts."], "terminology": [], "relationships": [], "examples": [], "misconceptions": [], "uncertainties": []}
             else:
@@ -88,7 +88,17 @@ class JobManager:
             if self.settings.mock_providers:
                 script_data = self._mock_script(analysis, chunks)
             else:
-                generation_prompt = render_prompt(GENERATION_PROMPT, analysis=json.dumps(analysis), source=source_for_prompt)
+                target_words = self.settings.podcast_duration_minutes * self.settings.podcast_words_per_minute
+                # Writing needs room for a long JSON response; use a smaller source window
+                # than analysis while preserving an excerpt from every source chunk.
+                generation_source = self._bounded_source(chunks, self.settings.max_generation_source_chars)
+                generation_prompt = render_prompt(
+                    GENERATION_PROMPT,
+                    analysis=json.dumps(analysis),
+                    source=generation_source,
+                    target_duration=str(self.settings.podcast_duration_minutes),
+                    target_words=str(target_words),
+                )
                 raw = await self.llm.generate(generation_prompt, "Return only valid JSON and stay strictly within the supplied source.", JSON_RESPONSE_FORMAT)
                 try:
                     script_data = parse_json_object(raw)
@@ -115,21 +125,26 @@ class JobManager:
                     "terms, examples, and relationships. Provide both display_text and natural spoken_text for every turn. "
                     "Return valid JSON only.\n\nSOURCE:\n" + source_for_prompt + "\n\nPREVIOUS SCRIPT:\n" + json.dumps(job.script.model_dump())
                 )
-                repaired_data = parse_json_object(await self.llm.generate(grounded_repair, "You are a strict source-fidelity editor. Return JSON only.", JSON_RESPONSE_FORMAT))
-                job.script = PodcastScript.model_validate(repaired_data)
-                if not self._is_source_anchored(job.script, source):
-                    raise ValueError("The generated podcast could not be grounded in the uploaded material")
+                try:
+                    repaired_data = parse_json_object(await self.llm.generate(grounded_repair, "You are a strict source-fidelity editor. Return JSON only.", JSON_RESPONSE_FORMAT))
+                    job.script = PodcastScript.model_validate(repaired_data)
+                except Exception:
+                    job.script = None
+                if job.script is None or not self._is_source_anchored(job.script, source):
+                    logger.warning("llm_returned_ungrounded_script_using_source_fallback", extra={"job_id": job.job_id})
+                    job.script = PodcastScript.model_validate(self._source_fallback_script(chunks))
             job.title = job.script.title
             (job.directory / "script" / "script.json").write_text(job.script.model_dump_json(indent=2), encoding="utf-8")
             self._update(job, JobStatus.generating_audio, 55, f"Generating voices (0 of {len(job.script.segments)})")
             audio_paths: list[Path] = []
             for index, segment in enumerate(job.script.segments, start=1):
                 voice = "teacher" if segment.speaker == "teacher" else "student"
-                voice_id = voice if self.settings.mock_providers else (self.settings.teacher_voice_id if voice == "teacher" else self.settings.student_voice_id)
+                voice_id = voice
                 target = job.directory / "audio" / f"{index:04d}-{voice}.wav"
                 for attempt in range(2):
                     try:
-                        target.write_bytes(await self.tts.generate_audio(segment.spoken_text or segment.display_text, voice_id))
+                        raw_audio = await self.tts.generate_audio(segment.spoken_text or segment.display_text, voice_id)
+                        self._write_normalized_audio(raw_audio, target)
                         break
                     except Exception:
                         if attempt == 1:
@@ -164,11 +179,68 @@ class JobManager:
     @staticmethod
     def _is_source_anchored(script: PodcastScript, source: str) -> bool:
         """Reject obviously unrelated titles, such as a Newton lesson for biology notes."""
+        spoken = " ".join(segment.spoken_text or segment.display_text for segment in script.segments).lower()
+        normalized_spoken = spoken.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+        refusal_markers = (
+            "have any source material",
+            "i don't have any source material",
+            "i do not have any source material",
+            "don't have the source material",
+            "do not have the source material",
+            "source material to work from",
+            "could you share what you do have",
+            "could you provide it",
+            "here is the source material",
+            "university library's digital archive",
+            "where we can find it",
+            "quick brown fox jumps over the lazy dog",
+            "https://example.com",
+        )
+        if any(marker in normalized_spoken for marker in refusal_markers):
+            return False
         source_words = set(re.findall(r"[a-z]{4,}", source.lower()))
+        spoken_words = set(re.findall(r"[a-z]{4,}", normalized_spoken))
+        generic_words = {"source", "material", "article", "notes", "example", "important", "concepts", "context", "teacher", "student"}
+        meaningful_overlap = {word for word in spoken_words & source_words if word not in generic_words}
+        if len(source_words) >= 40 and len(meaningful_overlap) < 5:
+            return False
         title_words = [word for word in re.findall(r"[a-z]{4,}", script.title.lower()) if word not in {"your", "podcast", "understanding", "conversation", "material", "guide", "discussion", "notes", "study"}]
         if title_words and sum(word in source_words for word in title_words) / len(title_words) < 0.5:
             return False
         return True
+
+    @staticmethod
+    def _source_fallback_script(chunks: list) -> dict:
+        """Create a usable, source-grounded episode when an LLM refuses the source."""
+        segments = []
+        chapters = []
+        segment_number = 1
+        for chunk in chunks:
+            text = re.sub(r"\s+", " ", chunk.text).strip()
+            if not text:
+                continue
+            # Keep the emergency path finite while retaining content from every page/chunk.
+            excerpt = text[:900]
+            teacher_id = f"source-{segment_number:04d}"
+            student_id = f"source-{segment_number:04d}-q"
+            label = f"page {chunk.page_start}" if chunk.page_start else chunk.source_file
+            segments.append({
+                "id": teacher_id,
+                "speaker": "teacher",
+                "display_text": f"From the notes in {label}: {excerpt}",
+                "spoken_text": f"The notes in {label} state: {excerpt}",
+            })
+            segments.append({
+                "id": student_id,
+                "speaker": "student",
+                "display_text": "What is the key point to remember from that section?",
+                "spoken_text": "What is the key point to remember from that section?",
+            })
+            chapters.append({"title": label, "segment_id": teacher_id})
+            segment_number += 1
+        if not segments:
+            raise ValueError("The uploaded document contained no readable source text")
+        return {"title": "A lesson from your uploaded notes", "segments": segments, "chapters": chapters}
 
     @staticmethod
     def _update(job: Job, status: JobStatus, progress: int, message: str) -> None:
@@ -185,6 +257,20 @@ class JobManager:
             {"id": "004", "speaker": "student", "display_text": "What should I remember when I come back to this later?"},
             {"id": "005", "speaker": "teacher", "display_text": "Remember the central relationship, the terminology that names it, and the evidence or example that makes it concrete. Then explain it in your own words."},
         ], "chapters": [{"title": "Big picture", "segment_id": "001"}, {"title": "Key idea", "segment_id": "003"}]}
+
+    @staticmethod
+    def _write_normalized_audio(raw_audio: bytes, target: Path) -> None:
+        """Normalize MP3/WAV provider output so mixed fallback providers can be joined."""
+        ffmpeg = shutil.which("ffmpeg")
+        if not ffmpeg:
+            target.write_bytes(raw_audio)
+            return
+        subprocess.run(
+            [ffmpeg, "-y", "-i", "pipe:0", "-ar", "24000", "-ac", "1", "-c:a", "pcm_s16le", str(target)],
+            input=raw_audio,
+            check=True,
+            capture_output=True,
+        )
 
     @staticmethod
     def _assemble(paths: list[Path], output: Path) -> None:
