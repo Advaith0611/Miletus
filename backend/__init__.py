@@ -1,2 +1,1 @@
-"""Miletus backend package."""
-
+"""Miletus API package."""

@@ -3,48 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Miletus — documents into podcasts</title>
+    <meta name="theme-color" content="#4a210d" />
+    <meta name="description" content="Miletus turns your study notes into a podcast." />
+    <title>Miletus — notes, made listenable</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <header class="brand"><a class="pythios-link" href="https://pythios.xyz" aria-label="Visit Pythios"><img src="/logo.png" alt="Pythios" /></a><span class="mark" aria-hidden="true">✦</span><span>MILETUS</span></header>
-      <section id="upload-view" class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">A clearer way to study</p>
-        <h1 id="hero-title">Turn your documents<br /><em>into podcasts.</em></h1>
-        <p class="lede">Upload notes, papers, or chapters. Miletus turns them into a thoughtful conversation you can listen to anywhere.</p>
-        <form id="upload-form">
-          <input id="file-input" name="files" type="file" accept=".pdf,.docx,.txt,.md,.markdown" multiple hidden />
-          <label id="dropzone" for="file-input" class="dropzone" tabindex="0">
-            <span class="upload-icon" aria-hidden="true">↑</span>
-            <span class="drop-title">Choose your documents</span>
-            <span class="drop-copy">PDF, DOCX, TXT, or Markdown · select as many as you need</span>
+    <div class="page-glow"></div>
+    <main class="site-shell">
+      <nav class="topbar" aria-label="Miletus">
+        <a class="brand" href="/" aria-label="Miletus home">
+          <img src="/logo.png" alt="" />
+          <span>MILETUS</span>
+        </a>
+        <span class="nav-note">Notes, made listenable</span>
+      </nav>
+
+      <section id="upload-panel" class="hero-panel" aria-labelledby="headline">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> A study companion</p>
+          <h1 id="headline">Let your notes<br /><em>tell the story.</em></h1>
+          <p class="intro">Upload your documents and Miletus turns them into a thoughtful, two-voice lesson you can take anywhere.</p>
+          <div class="feature-row" aria-label="Features">
+            <span>✦ Two voices</span><span>✦ Your sources only</span><span>✦ No account</span>
+          </div>
+        </div>
+
+        <form id="upload-form" class="upload-card">
+          <input id="file-input" name="files" type="file" accept=".pdf,.docx,.md" multiple hidden />
+          <label id="dropzone" class="dropzone" for="file-input" tabindex="0">
+            <span class="drop-icon" aria-hidden="true">↑</span>
+            <strong>Choose your documents</strong>
+            <small>PDF, DOCX, or Markdown</small>
+            <span class="drop-hint">or drag and drop them here</span>
           </label>
-          <div id="selected-files" class="selected-files" aria-live="polite"></div>
-          <button id="start-button" class="primary" type="submit" disabled>Make my podcast <span>→</span></button>
+          <div id="file-list" class="file-list" aria-live="polite"></div>
+          <button id="create-button" class="button button-primary" type="submit" disabled>
+            Create my podcast <span aria-hidden="true">→</span>
+          </button>
+          <p class="card-footnote">Your documents are used only to make this episode.</p>
         </form>
       </section>
-      <section id="progress-view" class="hidden" aria-live="polite">
-        <p class="eyebrow">Miletus is at work</p>
-        <h2 id="progress-title">Understanding your material<span class="dotting">...</span></h2>
-        <p id="progress-message" class="lede">Your documents are being read together.</p>
-        <div class="progress-track"><div id="progress-bar"></div></div>
-        <div id="steps" class="steps"></div>
-        <button id="cancel-button" class="text-button" type="button">Start over</button>
+
+      <section id="progress-panel" class="state-panel hidden" aria-live="polite">
+        <div class="orb"><img src="/logo.png" alt="" /></div>
+        <p class="eyebrow"><span></span> Miletus is working</p>
+        <h2 id="progress-heading">Reading your material<span class="ellipsis">...</span></h2>
+        <p id="progress-message" class="state-copy">Your notes are being prepared for a natural conversation.</p>
+        <div class="progress-track" aria-label="Podcast generation progress"><div id="progress-bar"></div></div>
+        <ol id="progress-steps" class="progress-steps"></ol>
+        <button id="restart-button" class="button button-quiet" type="button">Start over</button>
       </section>
-      <section id="result-view" class="hidden" aria-labelledby="result-title">
-        <p class="eyebrow">The conversation is ready</p>
-        <h2 id="result-title">Your podcast is ready.</h2>
-        <div class="player-card">
-          <div class="record"><span>✦</span></div>
-          <div><p class="card-label">MILETUS ORIGINAL</p><h3 id="podcast-title">Your podcast</h3></div>
+
+      <section id="result-panel" class="state-panel hidden" aria-labelledby="episode-title">
+        <p class="eyebrow"><span></span> Your episode is ready</p>
+        <h2 id="episode-title">Your notes, in conversation.</h2>
+        <article class="episode-card">
+          <div class="episode-art"><img src="/logo.png" alt="" /></div>
+          <div class="episode-meta"><span>MILETUS ORIGINAL</span><h3 id="podcast-title">Your podcast</h3><p id="podcast-overview"></p></div>
           <audio id="audio-player" controls preload="metadata"></audio>
-          <a id="download-link" class="primary download" download>Download MP3 <span>↓</span></a>
-        </div>
-        <details class="transcript"><summary>Show transcript</summary><pre id="transcript-text"></pre></details>
-        <button id="again-button" class="text-button" type="button">Create another podcast</button>
+          <a id="download-link" class="button button-primary download" download="miletus-podcast.wav">Download audio <span aria-hidden="true">↓</span></a>
+        </article>
+        <details id="script-details" class="script-card">
+          <summary>Read the episode script <span>+</span></summary>
+          <div id="script-content" class="script-content"></div>
+        </details>
+        <button id="make-another-button" class="button button-quiet" type="button">Create another podcast</button>
       </section>
-      <p class="footer-note">Private by design · no account required</p>
+
+      <footer>Made for unhurried learning <span>✦</span> Miletus</footer>
     </main>
     <script src="/config.js"></script>
     <script src="/app.js"></script>

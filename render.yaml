@@ -1,7 +1,6 @@
 services:
   - type: web
     name: miletus-api
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    env: docker
     healthCheckPath: /health
+    autoDeploy: true

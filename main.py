@@ -1,4 +1,3 @@
-from backend.app import create_app
+"""Render entry point for the Miletus API."""
 
-app = create_app()
-
+from backend.main import app
