@@ -1,3 +1,4 @@
 [build]
-  publish = "frontend"
-  command = "python scripts/build_frontend.py"
+  base = "frontend"
+  publish = "."
+  command = "node build-config.mjs"

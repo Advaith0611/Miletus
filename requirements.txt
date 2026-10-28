@@ -10,7 +10,5 @@ python-docx>=1.1.0
 piper-tts>=1.2.0
 elevenlabs>=1.0.0
 speechify-api>=0.1.0
-kokoro>=0.9.4
 soundfile>=0.12.1
-pyttsx3>=2.90
 streamlit>=1.40.0

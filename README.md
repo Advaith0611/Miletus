@@ -17,7 +17,7 @@ uvicorn main:app --reload --port 8000
 In a **second terminal**, with the same virtual environment activated:
 
 ```bash
-python scripts/build_frontend.py && python -m http.server 5173 --directory frontend
+node frontend/build-config.mjs && python -m http.server 5173 --directory frontend
 ```
 
 Set one LLM key in `.env`: `GEMINI_API_KEY`, `GROQ_API_KEY`, or `OPENROUTER_API_KEY`. For high-quality speech, set `ELEVENLABS_API_KEY` and both ElevenLabs voice IDs. Without a hosted voice provider, the Render Docker image falls back to eSpeak NG.
